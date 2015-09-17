@@ -316,6 +316,10 @@ public abstract class StorageContext {
 		return ids.toArray(new String[0]);
 	}
 
+	public WeaveBasicObject[] getCollection(String collection) throws WeaveException, NotFoundException {
+		return getCollection(collection, null, null, null, null, null, null, null, null, null);
+	}
+		
 	public WeaveBasicObject[] getCollection(String collection, String[] ids, Double older, Double newer, Integer index_above, Integer index_below, Integer limit, Integer offset, String sort, String format) throws WeaveException, NotFoundException {
 		URI location = buildCollectionUri(collection, ids, older, newer, index_above, index_below, limit, offset, sort, format, true);
 		return getCollection(location);	
@@ -438,7 +442,7 @@ public abstract class StorageContext {
 	public Double delete(String collection, String id) throws WeaveException {
 		URI location = null;
 		if (id == null) {
-			location = this.storageURL.resolve(URIUtils.sanitize(String.format("storage/%s", collection)));
+			throw new WeaveException("Id parameter cannot be null");
 		} else {
 			location = this.storageURL.resolve(URIUtils.sanitize(String.format("storage/%s/%s", collection, id)));			
 		}
@@ -476,6 +480,10 @@ public abstract class StorageContext {
 		}
 		
 		return modified;
+	}
+
+	public Double deleteCollection(String collection) throws WeaveException, NotFoundException {
+		return deleteCollection(collection, null, null, null, null, null, null);
 	}
 
 	public Double deleteCollection(String collection, String[] ids, Double older, Double newer, Integer limit, Integer offset, String sort) throws WeaveException, NotFoundException {

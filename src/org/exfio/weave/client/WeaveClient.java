@@ -60,6 +60,8 @@ public abstract class WeaveClient {
 		return storageClient.generateWeaveID();	
 	}
 	
+	public WeaveBasicObject get(String collection, String id) throws WeaveException, NotFoundException { return get(collection, id, true); }
+
 	public WeaveBasicObject get(String collection, String id, boolean decrypt) throws WeaveException, NotFoundException {
 		WeaveBasicObject wbo = this.storageClient.get(collection, id);
 		if ( decrypt ) {
@@ -78,6 +80,14 @@ public abstract class WeaveClient {
 
 	public String[] getCollectionIds(String collection, String[] ids, Double older, Double newer, Integer index_above, Integer index_below, Integer limit, Integer offset, String sort) throws WeaveException, NotFoundException {
 		return this.storageClient.getCollectionIds(collection, ids, older, newer, index_above, index_below, limit, offset, sort);
+	}
+
+	public WeaveBasicObject[] getCollection(String collection) throws WeaveException, NotFoundException {
+		return getCollection(collection, null, null, null, null, null, null, null, null, null);
+	}
+	
+	public WeaveBasicObject[] getCollection(String collection, String[] ids, Double older, Double newer, Integer index_above, Integer index_below, Integer limit, Integer offset, String sort, String format) throws WeaveException, NotFoundException {
+		return getCollection(collection, ids, older, newer, index_above, index_below, limit, offset, sort, format, true);
 	}
 
 	public WeaveBasicObject[] getCollection(String collection, String[] ids, Double older, Double newer, Integer index_above, Integer index_below, Integer limit, Integer offset, String sort, String format, boolean decrypt) throws WeaveException, NotFoundException {
@@ -126,7 +136,14 @@ public abstract class WeaveClient {
 	}
 
 	public Double delete(String collection, String id) throws NotFoundException, WeaveException {
+		if (id == null) {
+			throw new WeaveException("Id parameter cannot be null");
+		}
 		return this.storageClient.delete(collection, id);
+	}
+
+	public Double deleteCollection(String collection) throws WeaveException, NotFoundException {
+		return this.storageClient.deleteCollection(collection);
 	}
 
 	public Double deleteCollection(String collection, String[] ids, Double older, Double newer, Integer limit, Integer offset, String sort) throws WeaveException, NotFoundException {
@@ -136,12 +153,6 @@ public abstract class WeaveClient {
 	public StorageVersion getStorageVersion() { return version; }
 
 	public ApiVersion getApiVersion() { return getApiClient().getApiVersion(); }
-
-	public WeaveBasicObject get(String collection, String id) throws WeaveException, NotFoundException { return get(collection, id, true); }
-
-	public WeaveBasicObject[] getCollection(String collection, String[] ids, Double older, Double newer, Integer index_above, Integer index_below, Integer limit, Integer offset, String sort, String format) throws WeaveException, NotFoundException {
-		return getCollection(collection, ids, older, newer, index_above, index_below, limit, offset, sort, format, true);
-	}
 
 	public void close() throws IOException {
 		getApiClient().close();

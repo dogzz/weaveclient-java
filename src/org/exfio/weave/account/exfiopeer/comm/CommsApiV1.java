@@ -346,13 +346,13 @@ public class CommsApiV1 {
 		
 		//Delete exfio collections
 		try {
-			wc.deleteCollection(KEY_CLIENT_COLLECTION, null, null, null, null, null, null);
+			wc.deleteCollection(KEY_CLIENT_COLLECTION);
 		} catch (NotFoundException e) {
 			//Nothing to do - fail quietly
 		}
 
 		try {
-			wc.deleteCollection(KEY_MESSAGE_COLLECTION, null, null, null, null, null, null);
+			wc.deleteCollection(KEY_MESSAGE_COLLECTION);
 		} catch (NotFoundException e) {
 			//Nothing to do - fail quietly
 		}
