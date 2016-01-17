@@ -191,12 +191,23 @@ public class FxAccount extends WeaveAccount {
 	@Override
 	public void createAccount(WeaveAccountParams params) throws WeaveException {
 		Log.getInstance().debug("createAccount()");
-		throw new WeaveException("createAccount() not yet implemented");
+				
+		FxAccountParams regParams = (FxAccountParams)params;
+		this.createAccount(regParams.accountServer, regParams.user, regParams.password, regParams.tokenServer);
 	}
 
-	public void createAccount(String baseURL, String user, String password, String email) throws WeaveException {
+	public void createAccount(String accountServer, String user, String password, String tokenServer) throws WeaveException {
 		Log.getInstance().debug("createAccount()");
-		throw new WeaveException("createAccount() not yet implemented");
+				
+		FxAccountClient client = new FxAccountClient();
+		
+		try {
+			client.createAccount(accountServer, user, password);			
+		} catch (FxAccountClientException e) {
+			throw new WeaveException(e);
+		}
+		
+		initCore(accountServer, user, password, tokenServer);
 	}
 
 	@Override

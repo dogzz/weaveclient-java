@@ -431,6 +431,55 @@ public class WeaveAccountCLI {
 					}
 					
 					System.out.println(String.format("Successfully created account for user: '%s'", username));
+
+				} else if ( apiVersion == ApiVersion.v1_5 ) {
+
+					//Set host and credential details
+					accountServer = cmd.getOptionValue('s');
+					tokenServer   = cmd.getOptionValue('t');
+					username      = cmd.getOptionValue('u');
+					password      = cmd.getOptionValue('p');
+					
+					Log.getInstance().debug(String.format("Creating %s account '%s'@%s", WeaveClientFactory.apiVersionToString(apiVersion), username, accountServer));
+
+					if (
+						(accountServer == null || accountServer.isEmpty())
+						||
+						(tokenServer == null || tokenServer.isEmpty())
+						||
+						(username == null || username.isEmpty())
+						||
+						(password == null || password.isEmpty())
+					) {
+						System.err.println("account-server, token-server, username and password are required parameters for account creation");
+						System.exit(1);
+					}
+		
+					//Validate URI syntax
+					try {
+						URI.create(accountServer);
+					} catch (IllegalArgumentException e) {
+						System.err.printf("'%s' is not a valid URI, i.e. should be http(s)://example.com\n", accountServer);
+						System.exit(1);
+					}			
+			
+					Log.getInstance().info(String.format("Creating new account, user: '%s', pass: '%s'", username, password));
+							
+					FxAccountParams  fxaParams = new FxAccountParams();
+					fxaParams.accountServer  = accountServer;
+					fxaParams.tokenServer    = tokenServer;
+					fxaParams.user           = username;
+					fxaParams.password       = password;
+					
+					try {
+						account = new FxAccount();
+						account.createAccount(fxaParams);
+					} catch (WeaveException e) {
+						System.err.println(String.format("Couldn't create account - %s", e.getMessage()));
+						System.exit(1);
+					}
+					
+					System.out.println(String.format("Successfully created account for user: '%s'", username));
 					
 				} else {
 					Log.getInstance().warn(String.format("API version %s not supported", apiVersion));

@@ -58,7 +58,52 @@ public class FxAccountClient {
 		//Use bouncy/spongy castle to generate PBKDF2, which is 10 x faster than Mozilla Java implementation 
 		PBKDF2.setCryptoProvider(JCEProvider.getCryptoProvider());
 	}
-	
+
+	public FxAccountSession createAccount(String server, String username, String password) throws FxAccountClientException {
+		Logger.debug(LOG_TAG, "createAccount()");
+		
+		//Get strings as UTF8 encoded byte arrays
+		byte[] usernameUTF8 = null;
+		try {
+			usernameUTF8 = username.getBytes("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new AssertionError("Couldn't encode string as UTF-8 - " + e.getMessage());
+		}
+
+		fxaClient = new FxAccountClient20(server, executor);
+
+		//Prepare login params
+		PasswordStretcher passwordStretcher = new QuickPasswordStretcher(password);
+		Map<String, String> queryParameters = new HashMap<String, String>();
+	    BlockingRequestDelegate<LoginResponse> delegate = new BlockingRequestDelegate<LoginResponse>();
+	    
+	    fxaClient.createAccountAndGetKeys(usernameUTF8, passwordStretcher, queryParameters, delegate);
+	    
+	    //IMPORTANT - block while async task completes
+	    LoginResponse response = null;
+		Logger.debug(LOG_TAG, "Wait for blocking delegate");
+	    try {
+	    	delegate.getLatch().await();
+	    	response = delegate.getResult();
+	    } catch (InterruptedException e) {
+	    	throw new FxAccountClientException("Error waiting for thread to complete - " + e.getMessage());
+	    }
+		Logger.debug(LOG_TAG, "Completed BlockingDecoratorRequestDelegate");
+		
+		fxaSession = new FxAccountSession(response);
+		
+		try {
+			byte[] quickStretchedPW = passwordStretcher.getQuickStretchedPW(fxaSession.remoteEmail.getBytes("UTF-8"));
+			unwrapkB = FxAccountUtils.generateUnwrapBKey(quickStretchedPW);
+		} catch (UnsupportedEncodingException e) {
+			throw new FxAccountClientException("Couldn't derive client side keys - " + e.getMessage());
+		} catch (GeneralSecurityException e) {
+			throw new FxAccountClientException("Couldn't derive client side keys - " + e.getMessage());
+		}
+		
+		return fxaSession;	
+	}	
+
 	public FxAccountSession login(String server, String username, String password) throws FxAccountClientException {
 		return login(server, username, password, true);
 	}	
